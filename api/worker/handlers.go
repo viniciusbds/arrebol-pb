@@ -4,11 +4,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"log"
+	"net/http"
+
 	"github.com/ufcg-lsd/arrebol-pb/api"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/token"
-	"log"
-	"net/http"
 )
 
 const SignatureHeader string = "Signature"
@@ -19,21 +20,22 @@ type TokenResponse struct {
 	ArrebolWorkerToken string
 }
 
+type HTTPBody struct {
+	Worker    *worker.Worker
+	Signature []byte
+}
+
 func (a *API) AddWorker(w http.ResponseWriter, r *http.Request) {
 	var (
 		err              error
-		signature        string
+		signature        []byte
 		encodedPublicKey string
 		publicKey        []byte
 		_worker          *worker.Worker
 		_token           token.Token
 		queueId          uint
+		_httpbody        HTTPBody
 	)
-
-	if signature, err = GetHeader(r, SignatureHeader); err != nil {
-		WriteBadRequest(&w, err.Error())
-		return
-	}
 
 	if encodedPublicKey, err = GetHeader(r, PublicKeyHeader); err != nil {
 		WriteBadRequest(&w, err.Error())
@@ -45,12 +47,14 @@ func (a *API) AddWorker(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = json.NewDecoder(r.Body).Decode(&_worker); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&_httpbody); err != nil {
 		WriteBadRequest(&w, WrongBodyMsg+": "+err.Error())
 		return
 	}
+	_worker = _httpbody.Worker
+	signature = _httpbody.Signature
 
-	if _token, err = a.auth.Authenticator.Authenticate(string(publicKey), []byte(signature), _worker); err != nil {
+	if _token, err = a.auth.Authenticator.Authenticate(string(publicKey), signature, _worker); err != nil {
 		log.Println("Unauthorized: " + r.RemoteAddr + " - " + err.Error())
 		api.Write(w, http.StatusUnauthorized, api.ErrorResponse{
 			Message: err.Error(),

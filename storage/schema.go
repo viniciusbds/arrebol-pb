@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+
 	"github.com/jinzhu/gorm"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/service/errors"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker"
@@ -177,4 +178,8 @@ type Command struct {
 	ExitCode   int8         `json:"ExitCode"`
 	RawCommand string       `json:"RawCommand"`
 	State      CommandState `json:"State"`
+}
+
+func (c Command) String() string {
+	return fmt.Sprintf("[TaskID: %d, ExitCode:%d, RawCommand: %s, State: %s]", c.TaskID, c.ExitCode, c.RawCommand, c.State)
 }
