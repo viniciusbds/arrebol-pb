@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"github.com/google/logger"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/authorizer/policy/allowlist"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/authorizer/policy/tolerant"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/token"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/authorizer/policy/allowlist"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/authorizer/policy/tolerant"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/token"
 )
 
 const AllowAllKey = "ALLOW_ALL"
@@ -27,4 +27,8 @@ func NewAuthorizer() Authorizer {
 		return allowlist.GenerateAuthorizer()
 	}
 	return tolerant.GenerateAuthorizer()
+}
+
+func GetNextAvailableWorkerID() string {
+	return allowlist.GenerateAuthorizer().AllowList.GetNextAvailableWorkerID()
 }

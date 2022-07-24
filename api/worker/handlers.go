@@ -8,8 +8,8 @@ import (
 	"net/http"
 
 	"github.com/ufcg-lsd/arrebol-pb/api"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/token"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/token"
 )
 
 const SignatureHeader string = "Signature"
@@ -22,6 +22,11 @@ type TokenResponse struct {
 
 type HTTPBody struct {
 	Worker    *worker.Worker
+	Signature []byte
+}
+
+type HTTPBodyRM struct {
+	Payload   string
 	Signature []byte
 }
 
@@ -54,7 +59,7 @@ func (a *API) AddWorker(w http.ResponseWriter, r *http.Request) {
 	_worker = _httpbody.Worker
 	signature = _httpbody.Signature
 
-	if _token, err = a.auth.Authenticator.Authenticate(string(publicKey), signature, _worker); err != nil {
+	if _token, err = a.auth.Authenticator.AuthenticateWorker(string(publicKey), signature, _worker); err != nil {
 		log.Println("Unauthorized: " + r.RemoteAddr + " - " + err.Error())
 		api.Write(w, http.StatusUnauthorized, api.ErrorResponse{
 			Message: err.Error(),

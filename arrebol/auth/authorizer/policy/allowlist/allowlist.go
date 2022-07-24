@@ -2,27 +2,29 @@ package allowlist
 
 import (
 	"bufio"
-	"github.com/google/logger"
 	"os"
+
+	"github.com/google/logger"
 )
 
 const (
 	ListFilePath = "ALLOW_LIST_PATH"
 )
 
-type allowList struct {
-	list []string
+type AllowList struct {
+	list          []string
+	nextAvailable int
 }
 
-func newAllowList() allowList {
+func NewAllowList() AllowList {
 	list, err := loadSourceFile()
 	if err != nil {
 		logger.Fatal(err)
 	}
-	return allowList{list: list}
+	return AllowList{list: list}
 }
 
-func (l *allowList) contains(workerId string) bool {
+func (l *AllowList) contains(workerId string) bool {
 	for _, current := range l.list {
 		if current == workerId {
 			return true
@@ -44,4 +46,10 @@ func loadSourceFile() ([]string, error) {
 		ids = append(ids, scanner.Text())
 	}
 	return ids, scanner.Err()
+}
+
+func (l *AllowList) GetNextAvailableWorkerID() string {
+	workerId := l.list[l.nextAvailable]
+	l.nextAvailable++
+	return workerId
 }

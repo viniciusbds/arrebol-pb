@@ -5,22 +5,25 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/joho/godotenv"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/authorizer/policy/allowlist"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/token"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/key"
-	"github.com/ufcg-lsd/arrebol-pb/crypto"
-	"github.com/ufcg-lsd/arrebol-pb/storage"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/joho/godotenv"
+
+	uuid "github.com/satori/go.uuid"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/authorizer/policy/allowlist"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/key"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/token"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker"
+	"github.com/ufcg-lsd/arrebol-pb/crypto"
+	"github.com/ufcg-lsd/arrebol-pb/storage"
 )
 
-const FakeWorkerId = "fake_worker"
+const FakeWorkerId = "931b7a7a-5182-590c-d9f5-d8f9d83021eb"
 
 func OpenDriver() *storage.Storage {
 	s := storage.New(os.Getenv("DATABASE_ADDRESS"), os.Getenv("DATABASE_PORT"), os.Getenv("DATABASE_USER"),
@@ -55,12 +58,14 @@ func TestWorkerApiAddWorker(t *testing.T) {
 	s := OpenDriver()
 	defer CloseDriver(s, t)
 
+	workerID, err := uuid.FromString(FakeWorkerId)
+
 	worker := worker.Worker{
-		ID:      FakeWorkerId,
 		VCPU:    1.5,
 		RAM:     1024,
 		QueueID: 1,
 	}
+	worker.ID = workerID
 	data, err := json.Marshal(worker)
 	CheckError(t, err)
 

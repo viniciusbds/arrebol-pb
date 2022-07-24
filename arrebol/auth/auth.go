@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/authenticator"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/authorizer"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/authenticator"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/authorizer"
 )
 
 type Auth struct {

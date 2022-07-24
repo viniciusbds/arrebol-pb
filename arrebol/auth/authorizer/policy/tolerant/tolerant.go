@@ -2,9 +2,10 @@ package tolerant
 
 import (
 	"fmt"
+
 	"github.com/google/logger"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/token"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/service/errors"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/token"
 )
 
 type Authorizer struct{}

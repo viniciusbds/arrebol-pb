@@ -4,17 +4,17 @@ import (
 	"fmt"
 
 	"github.com/google/logger"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/token"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/service/errors"
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker/auth/token"
 )
 
 type Authorizer struct {
-	AllowList allowList
+	AllowList AllowList
 }
 
 func GenerateAuthorizer() *Authorizer {
 	logger.Infof("Allowlist Authorizer generated")
-	return &Authorizer{AllowList: newAllowList()}
+	return &Authorizer{AllowList: NewAllowList()}
 }
 
 func (auth *Authorizer) Authorize(token *token.Token) error {

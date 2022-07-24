@@ -3,11 +3,12 @@ package token
 import (
 	"errors"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker"
 	"github.com/ufcg-lsd/arrebol-pb/crypto"
-	"os"
-	"time"
 )
 
 const (
@@ -29,6 +30,21 @@ func NewToken(worker *worker.Worker) (Token, error) {
 	claims := &Claims{
 		QueueId:  worker.QueueID,
 		WorkerId: worker.ID.String(),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, claims)
+	signedToken, err := signToken(token)
+	if err != nil {
+		return "", err
+	}
+	return Token(signedToken), nil
+}
+
+func NewRMToken() (Token, error) {
+	expirationTime := time.Now().Add(ExpirationTime)
+	claims := &Claims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

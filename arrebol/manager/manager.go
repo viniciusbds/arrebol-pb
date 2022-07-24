@@ -1,10 +1,11 @@
 package manager
 
 import (
-	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker"
-	"github.com/ufcg-lsd/arrebol-pb/storage"
 	"log"
 	"strconv"
+
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/worker"
+	"github.com/ufcg-lsd/arrebol-pb/storage"
 )
 
 type Manager struct {
