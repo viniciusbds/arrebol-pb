@@ -1,20 +1,26 @@
 package worker
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/authorizer/policy/allowlist"
+	"github.com/ufcg-lsd/arrebol-pb/arrebol/auth/key"
 	"github.com/ufcg-lsd/arrebol-pb/arrebol/manager"
 	"github.com/ufcg-lsd/arrebol-pb/storage"
 )
 
 var (
 	al allowlist.AllowList
+)
+
+const (
+	RESOURCE_MANAGER_KEY_NAME               = "resource-manager"
+	RESOURCE_MANAGER_AUTHENTICATION_MESSAGE = "RESOURCE_MANAGER_AUTHENTICATION_MESSAGE"
 )
 
 type API struct {
@@ -63,21 +69,15 @@ func (a *API) AddPublicKey(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) GetAvailableWorkerID(w http.ResponseWriter, r *http.Request) {
 	var (
-		err              error
-		signature        []byte
-		encodedPublicKey string
-		publicKey        []byte
-		_payload         string
-		_httpbody        HTTPBodyRM
+		err       error
+		signature []byte
+		message   string
+		_httpbody HTTPBodyRM
 	)
 
-	if encodedPublicKey, err = GetHeader(r, PublicKeyHeader); err != nil {
-		WriteBadRequest(&w, err.Error())
-		return
-	}
-
-	if publicKey, err = base64.StdEncoding.DecodeString(encodedPublicKey); err != nil {
-		WriteBadRequest(&w, err.Error())
+	publicKey, err := key.GetPublicKey(RESOURCE_MANAGER_KEY_NAME)
+	if err != nil {
+		WriteBadRequest(&w, WrongBodyMsg+": "+err.Error())
 		return
 	}
 
@@ -85,10 +85,11 @@ func (a *API) GetAvailableWorkerID(w http.ResponseWriter, r *http.Request) {
 		WriteBadRequest(&w, WrongBodyMsg+": "+err.Error())
 		return
 	}
-	_payload = _httpbody.Payload
 	signature = _httpbody.Signature
 
-	if _, err = a.auth.Authenticator.AuthenticateRM(string(publicKey), signature, _payload); err != nil {
+	message = os.Getenv(RESOURCE_MANAGER_AUTHENTICATION_MESSAGE)
+
+	if _, err = a.auth.Authenticator.AuthenticateRM(publicKey, signature, message); err != nil {
 		log.Println("Unauthorized: " + r.RemoteAddr + " - " + err.Error())
 		WriteBadRequest(&w, err.Error())
 		return

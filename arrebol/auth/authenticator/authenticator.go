@@ -1,6 +1,7 @@
 package authenticator
 
 import (
+	"crypto/rsa"
 	"encoding/json"
 
 	"github.com/google/logger"
@@ -12,7 +13,7 @@ import (
 
 type Authenticator interface {
 	AuthenticateWorker(rawPublicKey string, signature []byte, worker *worker.Worker) (token.Token, error)
-	AuthenticateRM(rawPublicKey string, signature []byte, payload string) (token.Token, error)
+	AuthenticateRM(publicKey *rsa.PublicKey, signature []byte, message string) (token.Token, error)
 }
 
 type DefaultAuthenticator struct{}
@@ -59,14 +60,8 @@ func newToken(worker *worker.Worker) (token.Token, error) {
 	return t, nil
 }
 
-func (da *DefaultAuthenticator) AuthenticateRM(rawPublicKey string, signature []byte, payload string) (token.Token, error) {
-	publicKey, err := crypto.ParsePublicKeyFromPemStr(rawPublicKey)
-	if err != nil {
-		logger.Errorln(err.Error())
-		return "", err
-	}
-
-	data, err := json.Marshal(payload)
+func (da *DefaultAuthenticator) AuthenticateRM(publicKey *rsa.PublicKey, signature []byte, message string) (token.Token, error) {
+	data, err := json.Marshal(message)
 	if err != nil {
 		logger.Errorln(err.Error())
 		return "", err
@@ -74,10 +69,6 @@ func (da *DefaultAuthenticator) AuthenticateRM(rawPublicKey string, signature []
 
 	err = crypto.Verify(publicKey, data, signature)
 	if err != nil {
-		logger.Errorln(err.Error())
-		return "", err
-	}
-	if err := key.SavePublicKey("resource-manager", rawPublicKey); err != nil {
 		logger.Errorln(err.Error())
 		return "", err
 	}
